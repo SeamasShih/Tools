@@ -12,6 +12,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
+import android.view.animation.OvershootInterpolator;
 
 /**
  * Created by SeamasShih on 2018/3/30.
@@ -99,8 +100,8 @@ public class BidButton extends View {
             selectSector[i].lineTo(radius,radius);
             selectSector[i].close();
         }
-        animatorOpen = ValueAnimator.ofFloat(viewLength*centerRate/2,radius*1.2f,radius).setDuration(100);
-        animatorOpen.setInterpolator(new LinearInterpolator());
+        animatorOpen = ValueAnimator.ofFloat(viewLength*centerRate/2,radius).setDuration(100);
+        animatorOpen.setInterpolator(new OvershootInterpolator());
         animatorOpen.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {

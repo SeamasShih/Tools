@@ -42,6 +42,7 @@ public class MyCardSector extends View {
         setMyCardImage(10, R.drawable.poker_card_11);
         setMyCardImage(11, R.drawable.poker_card_12);
         setMyCardImage(12, R.drawable.poker_card_13);
+        setRegion();
     }
 
     private void initial(){
@@ -49,8 +50,16 @@ public class MyCardSector extends View {
             myCardImage[i] = null;
         for (int i = 0; i < cardRegion.length; i++)
             cardRegion[i] = new Region();
+        mPaint.setColor(Color.BLUE);
+        mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setAntiAlias(true);
+        mPaint.setStrokeWidth(5);
+        for (int i = 0; i < playedCard.length; i++)
+            playedCard[i] = false;
+        for (int i = 0; i < mPath.length; i++)
+            mPath[i] = new Path();
     }
-
+    private int n = 13;
     private int cardAmount = -1;
     private Bitmap[] myCardImage = new Bitmap[13];
     private Resources resources = this.getResources();
@@ -61,25 +70,20 @@ public class MyCardSector extends View {
     private int[] cardSideLength = {71 , 96};
     private int[] rotationCenter = {screenWidth/2,4*screenHeight};
     private Region[] cardRegion = new Region[13];
+    private Region all = new Region();
     private int radius = viewSideLength[1]*3/4;
+    private int r = radius - viewSideLength[1]*2/5;
     private int touching = -1;
-    private int siteX = -1;
-    private int siteY = -1;
-    private enum PRESSSTATUS{CARDCLOSE , CARDLONGCLICK}
-    private PRESSSTATUS pressStatus = PRESSSTATUS.CARDCLOSE;
-    private long firstClickTime;
+    private float sweepAngle = 1.5f;
+    private float startAngle = 90 - ((n-1)/2 * sweepAngle);
     private boolean isSel = false;
     float[] fgr = new float[2];
+    Paint mPaint = new Paint();
+    Path[] mPath = new Path[13];
+    boolean[] playedCard = new boolean[13];
 
     public void setMyCardImage(int orderNumber , int resId){
         myCardImage[orderNumber] = BitmapFactory.decodeResource(this.getResources(),resId);
-    }
-
-    public void setCardAmount(int cardAmount){
-        this.cardAmount = cardAmount;
-    }
-    public int getCardAmount(){
-        return cardAmount;
     }
 
     @Override
@@ -88,84 +92,27 @@ public class MyCardSector extends View {
         setMeasuredDimension(viewSideLength[0],viewSideLength[1]);
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        fgr[0] = event.getX();
-        fgr[1] = event.getY();
-
-        if (event.getActionMasked() == MotionEvent.ACTION_DOWN){
-            radius -= viewSideLength[1]*2/5;
-            for (int i = 0; i < cardRegion.length; i ++){
-                if (cardRegion[i].contains((int)(fgr[0]),(int)(fgr[1]))){
-                    touching = i;
-                }
-            }
-        }
-        else if (event.getActionMasked() == MotionEvent.ACTION_MOVE){
-            for (int i = 0; i < cardRegion.length; i ++){
-                if (cardRegion[i].contains((int)(fgr[0]),(int)(fgr[1]))){
-                        touching = i;
-                }
-            }
-        }
-        else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-            if (event.getRawY() < screenHeight/3)
-                Log.d("Seamas","GO!");
-            radius += viewSideLength[1] * 2 / 5;
-            touching = -1;
-            firstClickTime = -1;
-        }
-
-        invalidate();
-        return true;
-    }
-
-    @SuppressLint("DrawAllocation")
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        Path[] mPath = new Path[13];
+    private void setRegion(){
         cardSideLength[0] = myCardImage[0].getWidth();
         cardSideLength[1] = myCardImage[1].getHeight();
-        float l = (float) (rotationCenter[1] - radius - cardSideLength[1]) / (float) (rotationCenter[1] - radius);
-        float m = (float) (rotationCenter[1] - radius - cardSideLength[1]) * (float) Math.tan(Math.PI * 1.5 / 180);
+        all.set(0,0,viewSideLength[0],viewSideLength[1]);
         float[] pathPoint = new float[2];
-
-        canvas.save();
-
-        canvas.translate(rotationCenter[0], rotationCenter[1]);
-        canvas.rotate(-10.5f);
-
-        Paint mPaint = new Paint();
-        mPaint.setColor(Color.BLUE);
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setAntiAlias(true);
-        mPaint.setStrokeWidth(5);
-
-//        if (isSel){
-//            for (int i = 0; i < myCardImage.length; i++) {
-//                canvas.rotate(1.5f);
-//                if (i != touching)
-//                    canvas.drawBitmap(myCardImage[i], -cardSideLength[0] / 2, -rotationCenter[1] + radius, mPaint);
-//            }
-//            canvas.restore();
-//            canvas.drawBitmap(myCardImage[touching], fgr[0] - cardSideLength[0]/2 , fgr[1] - cardSideLength[1]/2 , mPaint);
-//        }
-        for (int i = 0; i < myCardImage.length; i++) {
-            canvas.rotate(1.5f);
-            if (i == touching) {
-                canvas.drawBitmap(myCardImage[i], -cardSideLength[0] / 2, -rotationCenter[1] + radius - cardSideLength[1] / 3, new Paint());
-            } else
-                canvas.drawBitmap(myCardImage[i], -cardSideLength[0] / 2, -rotationCenter[1] + radius, mPaint);
-        }
-        canvas.restore();
-
         for (int i = 0 ; i < cardRegion.length ; i++) {
-            mPath[i] = new Path();
-            double theta = Math.PI * (81+1.5*i) / 180;
-            pathPoint[0] =(float) (rotationCenter[0] - (rotationCenter[1]-radius)*Math.cos(theta) - cardSideLength[0]/2*Math.sin(theta));
-            pathPoint[1] =(float) (rotationCenter[1] - (rotationCenter[1]-radius)*Math.sin(theta) + cardSideLength[0]/2*Math.cos(theta));
+            cardRegion[i].setEmpty();
+            mPath[i].reset();
+        }
+        for (int i = 0 , count = 0; i < cardRegion.length ; i++) {
+            if (n == 0) continue;
+            while(playedCard[i]) {
+                i++;
+                if (i == 13) break;
+            }
+            if (i == 13) break;
+            startAngle = 90 - ((n-1)/2 * sweepAngle);
+            double theta = Math.PI * (startAngle+sweepAngle*count) / 180;
+            count++;
+            pathPoint[0] =(float) (rotationCenter[0] - (rotationCenter[1]-r)*Math.cos(theta) - cardSideLength[0]/2*Math.sin(theta));
+            pathPoint[1] =(float) (rotationCenter[1] - (rotationCenter[1]-r)*Math.sin(theta) + cardSideLength[0]/2*Math.cos(theta));
             mPath[i].moveTo(pathPoint[0], pathPoint[1]);
             pathPoint[0] += cardSideLength[1]*Math.cos(theta);
             pathPoint[1] += cardSideLength[1]*Math.sin(theta);
@@ -180,6 +127,98 @@ public class MyCardSector extends View {
             cardRegion[i].setPath(mPath[i],new Region(0,0,screenWidth,screenHeight));
             if (i > 0)
                 cardRegion[i-1].op(cardRegion[i],Region.Op.DIFFERENCE);
+            all.op(cardRegion[i],Region.Op.DIFFERENCE);
+        }
+
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        fgr[0] = event.getX();
+        fgr[1] = event.getY();
+
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN){
+            radius -= viewSideLength[1]*2/5;
+            Log.d("Seamas"," 141 -  ");
+            for (int i = 0; i < cardRegion.length; i ++){
+                if (cardRegion[i].contains((int)(fgr[0]),(int)(fgr[1]))){
+                    touching = i;
+                }
+            }
+        }
+        else if (event.getActionMasked() == MotionEvent.ACTION_MOVE){
+            for (int i = 0; i < cardRegion.length; i ++){
+                if (cardRegion[i].contains((int)(fgr[0]),(int)(fgr[1])) && !cardRegion[i].isEmpty()){
+                    touching = i;
+                    if (isSel) {
+                        isSel = false;
+                        radius -= viewSideLength[1] * 2 / 5;
+                        Log.d("Seamas"," 155 -  ");
+                    }
+                }
+            }
+            if (all.contains((int)(fgr[0]),(int)(fgr[1])) && !isSel){
+                isSel = true;
+                Log.d("Seamas"," 161 +  ");
+                radius += viewSideLength[1] * 2 / 5;
+            }
+        }
+        else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+            if (isSel && touching != -1) {
+                playedCard[touching] = true;
+                n -= 1;
+                setRegion();
+            }
+            else if(touching != -1) {
+                Log.d("Seamas"," 170 + ");
+                radius += viewSideLength[1] * 2 / 5;
+            }
+            isSel = false;
+            touching = -1;
+        }
+        invalidate();
+        return true;
+    }
+
+    @SuppressLint("DrawAllocation")
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
+        if (n == 0) return;
+        canvas.save();
+        canvas.translate(rotationCenter[0], rotationCenter[1]);
+        canvas.rotate(-(n+1)/2*sweepAngle);
+
+        if (isSel && touching!=-1){
+            for (int i = 0; i < myCardImage.length; i++) {
+                canvas.rotate(sweepAngle);
+                while(playedCard[i]) {
+                    i++;
+                    if (i == 13) break;
+                }
+                if (i == 13) break;
+                if (i != touching)
+                    canvas.drawBitmap(myCardImage[i], -cardSideLength[0] / 2, -rotationCenter[1] + radius, mPaint);
+            }
+            canvas.restore();
+            canvas.drawBitmap(myCardImage[touching],fgr[0]-cardSideLength[0]/2,fgr[1]-cardSideLength[1]/2,mPaint);
+        }
+        else {
+            for (int i = 0; i < myCardImage.length; i++) {
+                canvas.rotate(sweepAngle);
+                while(playedCard[i]) {
+                    i++;
+                    if (i == 13) break;
+                }
+                if (i == 13) break;
+                if (i == touching)
+                    canvas.drawBitmap(myCardImage[i], -cardSideLength[0] / 2, -rotationCenter[1] + radius - cardSideLength[1] / 3, new Paint());
+                else
+                    canvas.drawBitmap(myCardImage[i], -cardSideLength[0] / 2, -rotationCenter[1] + radius, mPaint);
+            }
+            canvas.restore();
         }
     }
     private void drawRegion(Canvas canvas,Region rgn,Paint paint)

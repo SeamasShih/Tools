@@ -7,7 +7,7 @@
     tools:context="com.example.seamasshih.mypokercardviewtest.MainActivity"
     android:clipChildren="false">
 
-    <com.example.seamasshih.mypokercardviewtest.View.BidButton
+    <com.example.seamasshih.mypokercardviewtest.View.MyCardSector
         android:id="@+id/ppp"
         android:layout_width="500dp"
         android:layout_height="500dp"
