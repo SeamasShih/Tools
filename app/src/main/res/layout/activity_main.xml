@@ -7,7 +7,7 @@
     tools:context="com.example.seamasshih.mypokercardviewtest.MainActivity"
     android:clipChildren="false">
 
-    <com.example.seamasshih.mypokercardviewtest.View.MyFoldingView
+    <com.example.seamasshih.mypokercardviewtest.View.MyCardSector
         android:id="@+id/ppp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

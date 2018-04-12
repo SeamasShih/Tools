@@ -193,6 +193,7 @@ public class BidButton extends View {
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN){
             isPressed = true;
+            animatorClose.end();
             animatorOpen.start();
             selecting = -1;
         }
@@ -209,6 +210,7 @@ public class BidButton extends View {
         else if (event.getActionMasked() == MotionEvent.ACTION_UP){
             isPressed = false;
             selecting = -2;
+            animatorOpen.end();
             animatorClose.start();
         }
         invalidate();
