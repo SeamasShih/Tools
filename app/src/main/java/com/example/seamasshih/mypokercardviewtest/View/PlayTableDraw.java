@@ -69,7 +69,7 @@ public class PlayTableDraw extends View {
         shadow.lineTo(screenWidth*(1-widthEdge-widthShadow)  , screenHeight*(widthEdge*2+widthShadow*2));
         shadow.lineTo(screenWidth*(widthEdge+widthShadow)    , screenHeight*(widthEdge*2+widthShadow*2));
         shadow.lineTo(screenWidth*(widthEdge+widthShadow)    , screenHeight*(1-widthEdge*2));
-        shadow.lineTo(screenWidth*(widthEdge)    , screenHeight*(1-widthEdge*2));
+        shadow.lineTo(screenWidth*(widthEdge)                , screenHeight*(1-widthEdge*2));
         shadow.close();
 
         float[] src = {
